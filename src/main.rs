@@ -4,13 +4,23 @@
 ///
 /// 비동기는 handler가 여러개
 /// RC , REFCEL
-/// 파이선 리스트 메소드 요소 전부 구현
+/// 파이선 리스트 메소드 요소 구현
+/// append()
+/// extend()
+/// insert()
+/// remove()
+/// pop()
+/// clear()
+/// index()
+/// count()
+/// reverse()
+/// copy()
 
 use std::collections::VecDeque;
 use std::boxed::Box;
 use std::io::stdin;
 
-#[derive(Debug, Clone, Copy)]
+
 fn main() {
     let mut list = List::new();
     // let a = I32 { val: "".to_string()};
@@ -21,34 +31,30 @@ fn main() {
         stdin().read_line(&mut buffer).expect("input error");
         let buff = buffer.trim();
         match buff {
-            _ => {println!("{:?}", buff.trim())},
+            _ => { println!("{:?}", buff) },
         }
 
+        let mut s = buff.split("=");
 
-        if buff.len() > 3 {
-            // 인풋 받은 스트링을 어떻게 처리하는게 효율적일까?
-            // 변수 선언시 let이나 var같은 stmt를 명시 하지 않으면 파싱할 때 검색할 경우가 너무 많음
-            if &buff[..3] == "let" {
-                // =가 한번 이상 나오는 경우(""안이나 == => 등) 에 대해서 선순위로 파싱 해야함(미구현)
-                // split을 쓰지 않으면 입력된 문장의 레터를 내가 만들고자 하는 함수에 모두 대입해 봐야함
-                // 먼저 최초의 stmt 확인(stmt 리스트 만들기 -> 일단은 let 하나로 List 구현),
-                let x = buffer.split("=");
-                let mut b = "";
-                for i in x {
-                    b = i.trim();
-                }
+        let mut var = s.nth(0).unwrap().trim();
+        let mut val = "";
 
-                // list 구현
-                // = 이후의 스플릿 블럭이 list []로 둘러쌓여 있을 경우
-                //
-                let len = b.len();
-                if b.chars().nth(0).unwrap().to_string() == "[".to_string() {
-                    if b.chars().nth(len - 1).unwrap().to_string() == "]".to_string() {
-                        let mut a = List::new().clone(); // -> 함수로 치환할 것
-                        println!("list {}", b);
-                    }
-                }
+        let s = buff.split("=");
+        for (i,v) in s.enumerate() {
+            if i == 0 {
+                var = v.trim()
+            } else {
+                val = v.trim();
             }
+            // println!("{}", v.trim());
+        }
+        println!("var is {}, val is {}", var, val);
+
+
+        let parsing_val = val.parse::<i8>();
+        match parsing_val {
+            Ok(parsing_val) => {},
+            Err(error) => {},
         }
     }
 }
@@ -77,7 +83,7 @@ pub trait Element {
 }
 
 struct I32 {
-    val: String,
+    val: i32,
 }
 
 impl Element for I32 {
@@ -87,7 +93,7 @@ impl Element for I32 {
 }
 
 struct I8 {
-    val: String,
+    val: i8,
 }
 
 impl Element for I8 {
@@ -97,7 +103,7 @@ impl Element for I8 {
 }
 
 struct I64 {
-    val: String,
+    val: i64,
 }
 
 impl Element for I64 {
