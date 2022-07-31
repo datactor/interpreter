@@ -46,19 +46,65 @@ fn main() {
             } else {
                 val = v.trim();
             }
-            // println!("{}", v.trim());
         }
-        println!("var is {}, val is {}", var, val);
+        // println!("var is {}, val is {}", var, val);
 
 
-        // i8, i32, i64, f64, Str 순서대로 파싱시도 후 리스트에 올리기
-        let parsing_val = val.parse::<i8>();
-        match parsing_val {
-            Ok(parsing_val) => {},
-            Err(error) => {},
+        // i8, i32, i64, f64, Str 순서대로 파싱시도 후
+        // 리스트에 올리기
+        match parsing(val) {
+            "i8" => println!("i8"),
+            "i32" => println!("i32"),
+            "i64" => println!("i64"),
+            "f64" => println!("f64"),
+            "list" => println!("list"),
+            "String" => println!("String"),
+            _ => {},
         }
+
+        // 변수 선언이 아니라 int값만 입력하면 파이썬 처럼 프린트하기 others값들을 입력하면
+        // 프로그램 종료가 아닌 에러 메시지로 변경하기
     }
 }
+
+fn parsing(val: &str) -> &str {
+    let parsing_val = val.parse::<i8>();
+    match parsing_val {
+        Ok(parsing_Val) => return "i8",
+        Err(error) => {},
+    }
+    let parsing_val2 = val.parse::<i32>();
+    match parsing_val2 {
+        Ok(parsing_val2) => return "i32",
+        Err(error) => {},
+    }
+    let parsing_val3 = val.parse::<i64>();
+    match parsing_val3 {
+        Ok(parsing_val3) => return "i64",
+        Err(error) => {},
+    }
+    let parsing_val4 = val.parse::<f64>();
+    match parsing_val4 {
+        Ok(parsing_val4) => return "f64",
+        Err(error) => {},
+    }
+    let len = val.len();
+    if val.chars().nth(0) != None {
+        if val.chars().nth(0).unwrap() == '[' &&
+            val.chars().nth(len - 1).unwrap() == ']' {
+            return "list"
+        } else { return "String" }
+    }
+    // if val.chars().nth(0).unwrap() == '[' &&
+    //     val.chars().nth(len - 1).unwrap() == ']' {
+    //     return "list"
+    // } else {
+        return "String"
+    // }
+}
+
+
+
 
 struct List {
     lane: VecDeque<Box<dyn Element>>,
@@ -84,7 +130,7 @@ pub trait Element {
 }
 
 struct I32 {
-    val: i32,
+    val: String,
 }
 
 impl Element for I32 {
@@ -94,7 +140,7 @@ impl Element for I32 {
 }
 
 struct I8 {
-    val: i8,
+    val: String,
 }
 
 impl Element for I8 {
@@ -104,7 +150,7 @@ impl Element for I8 {
 }
 
 struct I64 {
-    val: i64,
+    val: String,
 }
 
 impl Element for I64 {
