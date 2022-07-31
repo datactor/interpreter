@@ -1,91 +1,109 @@
-trait Animal {
-    // trait 공통 메서드
-    // 위 trait을 가지는 각각의 구조체들이 공통적으로 가질 필요가 있는 동작은 정리되어 명시되어야 하며,
-    // 각 인스턴스 상에서 아래 메소드를 호출함으로써 해당 정리를 얻어낼 수 있어야 한다
-    fn fields(&self) -> String;
-}
+/// interpreter, python list 구현해보기
+/// 루프 문에 input실행하고 parsing, mut state 전달
+/// 모든 함수에 state 전달
+///
+/// 비동기는 handler가 여러개
+/// RC , REFCEL
+/// 파이선 리스트 메소드 요소 전부 구현
 
-struct Lion {
-    name: String
-}
-
-// impl [trait] for [struct(type)] {}
-impl Animal for Lion {
-    fn fields(&self) -> String {
-        format!("{}", self.name)
-    }
-}
-
-struct Hippo {
-    name: String
-}
-
-impl Animal for Hippo {
-    fn fields(&self) -> String {
-        format!("{}", self.name)
-    }
-}
-
-struct Elephant {
-    name: String
-}
-
-impl Animal for Elephant {
-    fn fields(&self) -> String {
-        format!("{}", self.name)
-    }
-}
+use std::collections::VecDeque;
+use std::boxed::Box;
+use std::io::stdin;
 
 
-// 여러 개의 제네릭 타입 파라미터를 가진 함수들에 대하여, 각 제네릭은 고유의 trait bound를 가짐.
-// 꺾쇠 괄호 내에 많은 수의 trait bound를 특정할 수 있지만, 가독성을 떨어트릴 수 있으므로
-// 함수 시그니처 뒤에 where 절 뒤로 trait bound를 옮겨서 특정하도록 해주는 대안 문법이 있음
-//
-// e.g. fn some_function<T: Display + Clone, U: Clone + Debug>(t: T, u: U) -> i32 {}
-// -> fn some_function<T, U>(t: T, u: U) -> i32
-//       where T: Display + Clone,
-//             U: Clone + Debug
-//   {}
-struct Mystruct<T: Animal>  // bound Animal을 where절을 사용해 대체할 수 있음.
-// where
-//     T: Animal
-{
-    inner: T
-}
+fn main() {
+    let mut list = List::new();
+    // let a = I32 { val: "".to_string()};
+    // list.append(Box::new(a));
 
-impl<T: Animal> Mystruct<T> {
-    pub fn new(t: T) -> Self {
-        Self {
-            inner: t
+    loop {
+        let mut buffer = String::new();
+        stdin().read_line(&mut buffer).expect("input error");
+        let buff = buffer.trim();
+        match buff {
+            _ => {println!("{:?}", buff.trim())},
+        }
+
+
+        if buff.len() > 3 {
+            // 변수 선언시 let이나 var같은 선언문을 명시 하지 않으면 파싱할 때 검색할 경우가 너무 많음
+            if &buff[..3] == "let" {
+                // =가 한번 이상 나오는 경우(""안이나 == => 등) 에 대해서 선순위로 파싱 해야함(미구현)
+                let x = buffer.split("=");
+                let mut b = "";
+                for i in x {
+                    b = i.trim();
+                }
+                let len = b.len();
+                if b.chars().nth(0).unwrap().to_string() == "[".to_string() {
+                    if b.chars().nth(len - 1).unwrap().to_string() == "]".to_string() {
+                        println!("list {}", b);
+                    }
+                }
+            }
         }
     }
 }
 
-fn get_animal_name<T: Animal> (t: &Mystruct<T>) -> String {
-    t.inner.fields()
+struct List {
+    lane: VecDeque<Box<dyn Element>>,
 }
 
-// Dynamic dispatch? run-time에 어떤 메소드를 실행할 지 결정하는 것(default: 정적 디스패치 - compile-time)
-// trait objects? set of traits을 구현한 타입의 인스턴스(unsized value)
-// 'dyn Animal'을 참조하거나 Box<T>와 같이 포인터로 사용하는 이유?
-// compile-time에 Animal trait의 크기를 알 수 없기 때문(sized 조건 불충족)
-// 제네릭 타입 파라미터는 한 번에 하나의 구체 타입으로만 대입될 수 있는 반면,
-// trait object를 사용하면 run-time에 여러 구체 타입을 채워넣는 것도 가능해짐
-// 결론적으로, compile-time에 모든 타입을 알 필요는 없게 된다
-// todo!증명 할 것
-fn get_animal(t: &dyn Animal) -> String {
-    t.fields()
+impl List {
+    fn new() -> Self {
+        List { lane: VecDeque::new() }
+    }
+
+    fn append(&mut self, element: Box<dyn Element>) {
+        self.lane.push_back(element);
+    }
+
+    fn pop(&mut self) {
+        self.lane.pop_back().unwrap();
+    }
 }
 
-fn main() {
-    let a = Mystruct::new(Lion {name: "Lion".to_string()});
-    let b = Mystruct::new(Hippo {name: "Hippo".to_string()});
-    let c = Mystruct::new(Elephant {name: "Elephant".to_string()});
-    println!("{}", &a.inner.name);
-    dbg!(get_animal_name(&a));
-    dbg!(get_animal_name(&b));
-    dbg!(get_animal_name(&c));
-    dbg!(get_animal(&a.inner));
-    dbg!(get_animal(&b.inner));
-    dbg!(get_animal(&c.inner));
+
+pub trait Element {
+    fn vals(&self) -> String;
+}
+
+struct I32 {
+    val: String,
+}
+
+impl Element for I32 {
+    fn vals(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+struct I8 {
+    val: String,
+}
+
+impl Element for I8 {
+    fn vals(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+struct I64 {
+    val: String,
+}
+
+impl Element for I64 {
+    fn vals(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+struct Str {
+    val: String,
+}
+
+impl Element for Str {
+    fn vals(&self) -> String {
+        format!("{}", self.val)
+    }
 }
