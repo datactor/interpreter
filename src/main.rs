@@ -10,7 +10,7 @@ use std::collections::VecDeque;
 use std::boxed::Box;
 use std::io::stdin;
 
-
+#[derive(Debug, Clone, Copy)]
 fn main() {
     let mut list = List::new();
     // let a = I32 { val: "".to_string()};
@@ -30,16 +30,21 @@ fn main() {
             // 변수 선언시 let이나 var같은 stmt를 명시 하지 않으면 파싱할 때 검색할 경우가 너무 많음
             if &buff[..3] == "let" {
                 // =가 한번 이상 나오는 경우(""안이나 == => 등) 에 대해서 선순위로 파싱 해야함(미구현)
-                // split을 쓰지 않으면 입력된 문장의 레터를 내가 만들고자 하는 함수에 모두 대입해 봐야함(다른 방법은 모름)
-                // 먼저 최초의 stmt 확인(stmt 리스트 만들기),
+                // split을 쓰지 않으면 입력된 문장의 레터를 내가 만들고자 하는 함수에 모두 대입해 봐야함
+                // 먼저 최초의 stmt 확인(stmt 리스트 만들기 -> 일단은 let 하나로 List 구현),
                 let x = buffer.split("=");
                 let mut b = "";
                 for i in x {
                     b = i.trim();
                 }
+
+                // list 구현
+                // = 이후의 스플릿 블럭이 list []로 둘러쌓여 있을 경우
+                //
                 let len = b.len();
                 if b.chars().nth(0).unwrap().to_string() == "[".to_string() {
                     if b.chars().nth(len - 1).unwrap().to_string() == "]".to_string() {
+                        let mut a = List::new().clone(); // -> 함수로 치환할 것
                         println!("list {}", b);
                     }
                 }
