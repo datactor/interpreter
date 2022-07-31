@@ -51,6 +51,7 @@ fn main() {
         println!("var is {}, val is {}", var, val);
 
 
+        // i8, i32, i64, f64, Str 순서대로 파싱시도 후 리스트에 올리기
         let parsing_val = val.parse::<i8>();
         match parsing_val {
             Ok(parsing_val) => {},
