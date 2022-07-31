@@ -94,13 +94,8 @@ fn parsing(val: &str) -> &str {
             val.chars().nth(len - 1).unwrap() == ']' {
             return "list"
         } else { return "String" }
-    }
-    // if val.chars().nth(0).unwrap() == '[' &&
-    //     val.chars().nth(len - 1).unwrap() == ']' {
-    //     return "list"
-    // } else {
-        return "String"
-    // }
+    } return "String"
+    // return "String" -> int값이 아니면 error 메시지 출력으로 변경 할 것
 }
 
 
