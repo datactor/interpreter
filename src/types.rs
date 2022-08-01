@@ -24,7 +24,7 @@ pub trait Element {
 }
 
 pub(crate) struct I32 {
-    val: String,
+    pub val: String,
 }
 
 impl Element for I32 {
@@ -34,7 +34,7 @@ impl Element for I32 {
 }
 
 pub(crate) struct I8 {
-    val: String,
+    pub val: String,
 }
 
 impl Element for I8 {
@@ -44,7 +44,7 @@ impl Element for I8 {
 }
 
 pub(crate) struct I64 {
-    val: String,
+    pub val: String,
 }
 
 impl Element for I64 {
@@ -54,10 +54,20 @@ impl Element for I64 {
 }
 
 pub(crate) struct Str {
-    val: String,
+    pub val: String,
 }
 
 impl Element for Str {
+    fn vals(&self) -> String {
+        format!("{}", self.val)
+    }
+}
+
+pub(crate) struct Bool {
+    pub val: String,
+}
+
+impl Element for Bool {
     fn vals(&self) -> String {
         format!("{}", self.val)
     }

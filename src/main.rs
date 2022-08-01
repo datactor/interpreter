@@ -1,5 +1,6 @@
 mod parser;
 mod types;
+mod lexer;
 
 /// interpreter, python list 구현해보기
 /// 루프 문에 input실행하고 parsing, mut state 전달
@@ -18,6 +19,39 @@ mod types;
 /// count()
 /// reverse()
 /// copy()
+///
+///
+/// interpreter 구성요소
+///                       |   source code
+///                 +–––--+-–––-+
+/// Lexical         |   Lexer   |
+/// analysis        +–––--+-–––-+
+///                       |   Tokens
+///                 +–––--+--–––+
+/// Syntzs          |   Parser  |
+/// analysis        +–––--+–--––+
+///                       |   AST
+///                 +–––--+--–––+           | s |
+/// Semantic        |  Semantic |           | y |
+/// analysis        |  Analyzer |           | m |
+///                 +–––--+–--––+           | b |
+///                       |   AST           | o |
+///                 +–––--+–--––+           | l |
+/// Program         |Interpreter|           |   |
+/// evaluation      +–––--+–-––-+           | t |
+///                       |   Program       | a |
+///                       |   output        | b |
+///                                         | l |
+///                                         | e |
+///
+/// 1. lexer로 소스코드를 token 단위로 분석하고,
+/// 2. parser로 우선순위에 맞춰서 Abstract Syntax Tree를 만들어 준 뒤
+/// 3. Sementic Analyzer로 의미 분석을 하고(type check)
+/// 4. Interpreter가 연산해서 출력함.
+///
+/// token? 코드의 더이상 분해 될 수 없는 최소 단위의 '의미를 가진 텍스트'.
+/// token의 종류 -> 키워드, 식별자, 구분자, 연산자, 문자열 리터럴, 숫자, 상수 등
+/// tokernizing부터 해보기
 
 use std::boxed::Box;
 use std::io::stdin;
