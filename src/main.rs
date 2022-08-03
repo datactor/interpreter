@@ -1,6 +1,17 @@
-mod parser;
-mod types;
+extern crate core;
+
 mod lexer;
+mod interpreter;
+mod expr;
+mod parser;
+mod extensions;
+mod line_reader;
+mod input;
+mod repl;
+
+use std::sync::atomic::Ordering;
+
+use std::fs;
 
 /// interpreter, python list 구현해보기
 /// 루프 문에 input실행하고 parsing, mut state 전달
@@ -46,49 +57,47 @@ mod lexer;
 ///
 /// 1. lexer로 소스코드를 token 단위로 분석하고,
 /// 2. parser로 우선순위에 맞춰서 Abstract Syntax Tree를 만들어 준 뒤
+/// - Abstract Syntax Tree?
 /// 3. Sementic Analyzer로 의미 분석을 하고(type check)
 /// 4. Interpreter가 연산해서 출력함.
 ///
-/// token? 코드의 더이상 분해 될 수 없는 최소 단위의 '의미를 가진 텍스트'.
-/// token의 종류 -> 키워드, 식별자, 구분자, 연산자, 문자열 리터럴, 숫자, 상수 등
-/// tokernizing부터 해보기
+///
+/// 구동할 수 있는 최소 모듈 카피 리팩터,
+/// 1. single quotation marks 커버드 밸류 역시 스트링으로 받을 수 있도록 함 완
+/// 2. 파이썬과 같이 선언문 없이 선언할 수 있는 기능 구현 완
+/// 3. 리스트 표현방법 변경할 것
 
-use std::boxed::Box;
 use std::io::stdin;
-
+use crate::expr::Stmt;
 
 fn main() {
-    let mut list = types::List::new();
+    let extensions = extensions::Extensions {
+        lists: false,
+        lambdas: false,
+    };
+    // repl::run(extensions);
+    let mut interpreter = repl::mk_interpreter();
+    let mut line_reader = line_reader::LineReader::new(".repl-history.txt", ">>> ");
+    println!(
+        "===================================================\n\
+        Welcome to lox ! Using tree-walk interpreter.\n\
+        This is refactored from https://github.com/tdp2110/crafting-interpreters-rs\n\
+        ===================================================\n",
+    );
     loop {
-        let mut buffer = String::new();
-        stdin().read_line(&mut buffer).expect("input error");
-        let buff = buffer.trim();
-        match buff {
-            _ => { println!("{:?}", buff) },
-        }
-
-        let mut var = "";
-        let mut val = "";
-        for (i, v) in buff.chars().enumerate() {
-            if v == '=' {
-                var = &buff[0..i].trim();
-                val = &buff[i + 1..buff.len()].trim();
-                break
-            }
-        }
-
-        // 리스트에 올리기
-        match parser::parsing(val) {
-            "i8" => println!("i8"),
-            "i32" => println!("i32"),
-            "i64" => println!("i64"),
-            "f64" => println!("f64"),
-            "list" => {
-                println!("list");
+        let readline = line_reader.readline();
+        match readline {
+            line_reader::LineReadStatus::Line(line) => match lexer::check_tokens(line.clone()) {
+                Ok(tokens) => {
+                    let mut a = repl::check_eval_tokens(&mut interpreter, tokens.clone(),
+                                                    0, extensions, &line);
+                    if a == true {
+                        repl::eval_tokens2(&mut interpreter, tokens.clone(),0, extensions, &line)
+                    }
+                },
+                Err(err) => {}
             },
-            "String" => println!("String"),
-            _ => {},
+            line_reader::LineReadStatus::Done => break,
         }
-        // [변수, 밸류, 리스트] 구조 더 고민해보기
     }
 }

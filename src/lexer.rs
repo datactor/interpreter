@@ -6,58 +6,66 @@ use std::fmt;
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub enum TokenType {
     // Single-char tokens
-    LeftParen,      // (
-    RightParen,     // )
-    LeftBrace,      // {
-    RightBrace,     // }
-    LeftBracket,    // [
-    RightBracket,   // ]
-    Comma,          // ,
-    Dot,            // .
-    Minus,          // -
-    Plus,           // +
-    Semicolon,      // ;
-    Slash,          // /
-    Percent,        // %
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    LeftBracket,
+    RightBracket,
+    Comma,
+    Dot,
+    Minus,
+    Plus,
+    Semicolon,
+    Slash,
+    Percent,        // % 추가
 
     // One or two char tokens
     Equal,          // = (+declaration)
-    Bang,           // !
-    BangEqual,      // !=
-    EqualEqual,     // ==
-    Greater,        // >
-    GreaterEqual,   // >=
-    Less,           // <
-    LessEqual,      // <=
-    Star,           // *
-    StarStar,       // **
+    Bang,
+    BangEqual,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+    Star,
+    StarStar,       // ** 추가
 
     // Literals
     Identifier,     // 식별자 이름 지정할 때 규칙 만들어 둘 것
-    String,         // is_alphabetic() 사용할 것
-    Number,         // is_ascii_digit() 사용할 것
+    String,
+    Number,
 
     // Keywords
-    And,            // and, &
-    True,           // true
-    False,          // false
-    For,            // for
-    In,             // in
-    If,             // if
-    Elif,           // elif
-    Else,           // else
-    Or,             // or, |
-    Print,          // print
-    Return,         // return
-    While,          // while
-    Eof,            // EOF
+    And,
+    True,
+    False,
+    Def,
+    For,
+    In,
+    If,
+    Elif,
+    Else,
+    Or,
+    Print,
+    Return,
+    While,
+    Class,
+    Lambda,
+    Nil,
+    Super,
+    This,
+    Var,
+
+    Eof,
 }
 
 #[derive(Debug, Clone)]
 pub enum Literal {
     Identifier(String),
     Str(String),
-    Number(f64),        // 파이썬을 짤 것이기 때문에 일단은 f64로 통일해 놓자
+    Number(f64),        // 숫자는 모두 받을 것이므로 f64
 }
 
 #[derive(Clone)]
@@ -69,7 +77,6 @@ pub struct Token {
     pub col: i64,                   // 칼럼은 -1부터
 }
 
-// native 라이브러리의 Debug 트레잇 바운딩
 // pub trait Debug {
 //     #[stable(feature = "rust1", since = "1.0.0")]
 //     fn fmt(&self, f: &mut Formatter<'_>) -> Result;
@@ -88,18 +95,14 @@ impl fmt::Debug for Token {
     }
 }
 
-
-// pub trait Default: Sized {
-//     fn default() -> Self;
-// }
 pub fn check_tokens(input: String) -> Result<Vec<Token>, Error> {
-    let mut scanner: Scanner = Default::default();  // Returns the "default value" for a type.
+    let mut lexer: Lexer = Default::default();  // Returns the "default value" for a type.
 
-    scanner.scan_tokens(input);
+    lexer.check_tokens(input);
 
-    match scanner.err {
+    match lexer.err {
         Some(err) => Err(err),
-        None => Ok(scanner.tokens),                 //에러가 없을 시에 Ok 반환함
+        None => Ok(lexer.tokens),               // 에러가 없을 시에 Ok 반환함
     }
 }
 
@@ -110,8 +113,8 @@ pub struct Error {      // Error type 정의
     pub col: i64,
 }
 
-pub struct Scanner {
-    source: Vec<u8>,
+pub struct Lexer {
+    source: Vec<u8>,    // u8로 받는 이유
     tokens: Vec<Token>,
     err: Option<Error>,
     start: usize,
@@ -122,10 +125,12 @@ pub struct Scanner {
 }
 
 // keyword type checker
-// native trait Default
-impl Default for Scanner {
-    fn default() -> Scanner {
-        Scanner {
+// pub trait Default: Sized {
+//     fn default() -> Self;
+// }
+impl Default for Lexer {
+    fn default() -> Lexer {
+        Lexer {
             source: Vec::new(),
             tokens: Vec::new(),
             err: None,
@@ -139,13 +144,20 @@ impl Default for Scanner {
                 ("false", TokenType::False),
                 ("in", TokenType::In),
                 ("for", TokenType::For),
+                ("def", TokenType::Def),        // def로 변경
                 ("if", TokenType::If),
                 ("elif", TokenType::Elif),
                 ("else", TokenType::Else),
                 ("or", TokenType::Or),
                 ("print", TokenType::Print),
+                ("class", TokenType::Class),
                 ("return", TokenType::Return),
                 ("while", TokenType::While),
+                ("labmda", TokenType::Lambda),
+                ("super", TokenType::Super),
+                ("this", TokenType::This),
+                ("nil", TokenType::Nil),
+                ("var", TokenType::Var),
             ].into_iter()   // vec구조 원소별로 iterator type으로 넘기기
                 .map(|(key, val)| (String::from(key), val))// to String
                 .collect(),
@@ -155,13 +167,13 @@ impl Default for Scanner {
     }
 }
 
-impl Scanner {
-    fn scan_tokens(&mut self, input: String) {
+impl Lexer {
+    fn check_tokens(&mut self, input: String) {
         self.source = input.into_bytes();       // into_bytes()
 
         while !self.done() {
-            self.start = self.current;
-            self.scan_token();
+            self.start = self.cursor;
+            self.check_token();
         }
 
         match self.err {
@@ -183,10 +195,22 @@ impl Scanner {
         char::from(self.source[self.cursor - 1])
     }
 
-    fn scan_token(&mut self) {
+    fn check_token(&mut self) {
         let c = self.nexting();
 
         match c {
+            '%' => self.add_token(TokenType::Percent),
+            '&' => self.add_token(TokenType::And),
+            '|' => self.add_token(TokenType::Or),
+            '*' => {
+                let matches_eq = self.matches('*');
+                self.add_token(if matches_eq {
+                    TokenType::StarStar                         // 추가 할 것
+                } else {
+                    TokenType::Star
+                })
+            }
+
             '(' => self.add_token(TokenType::LeftParen),
             ')' => self.add_token(TokenType::RightParen),
             '{' => self.add_token(TokenType::LeftBrace),
@@ -198,13 +222,201 @@ impl Scanner {
             '-' => self.add_token(TokenType::Minus),
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
-            '%' => self.add_token(TokenType::Percent),
-
-
-
-
-            _ => {},
+            // '*' => self.add_token(TokenType::Star),
+            '!' => {
+                let matches_eq = self.matches('=');
+                self.add_token(if matches_eq {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
+                })
+            }
+            '=' => {
+                let matches_eq = self.matches('=');
+                self.add_token(if matches_eq {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                })
+            }
+            '<' => {
+                let matches_eq = self.matches('=');
+                self.add_token(if matches_eq {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                })
+            }
+            '>' => {
+                let matches_eq = self.matches('=');
+                self.add_token(if matches_eq {
+                    TokenType::GreaterEqual
+                } else {
+                    TokenType::Greater
+                })
+            }
+            '/' => {
+                if self.matches('/') {
+                    while self.peek() != '\n' && !self.is_end() {
+                        self.nexting();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash)
+                }
+            }
+            ' ' | '\r' | '\t' => {}
+            '\n' => {
+                self.line += 1;
+                self.col = 0
+            }
+            '"' => self.string(),
+            '\'' => self.string2(),
+            _ => {
+                if Lexer::is_decimal_digit(c) {
+                    self.number()
+                } else if Lexer::is_alpha(c) {
+                    self.identifier()
+                } else {
+                    self.err = Some(Error {
+                        what: format!("Lexer can't handle {}", c),
+                        line: self.line,
+                        col: self.col,
+                    })
+                }
+            }
         }
+    }
+
+    fn is_alpha(c: char) -> bool {
+        c.is_alphabetic()
+    }
+
+    fn is_decimal_digit(c: char) -> bool {
+        c.is_ascii_digit()
+    }
+
+    fn is_alphanumeric(c: char) -> bool {
+        Lexer::is_alpha(c) || Lexer::is_decimal_digit(c)       // | 하나로는 안될까?
+    }
+
+    fn peek(&self) -> char {
+        if self.is_end() {
+            '\0'                                                    // \0 is null
+        } else {
+            char::from(self.source[self.cursor])
+        }
+    }
+
+    fn peek_next(&self) -> char {
+        if self.cursor + 1 >= self.source.len() {
+            '\0'
+        } else {
+            char::from(self.source[self.cursor + 1])
+        }
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_end() {    // &는 안될까?
+            if self.peek() == '\n' {
+                self.line += 1
+            }
+            self.nexting();
+        }
+
+        if self.is_end() {
+            self.err = Some(Error {
+                what: "Unterminated string".to_string(),
+                line: self.line,
+                col: self.col,
+            })
+        }
+
+        assert_eq!(self.peek(), '"');
+
+        self.nexting();
+
+        self.add_token_literal(
+            TokenType::String,
+            Some(Literal::Str(
+                String::from_utf8(self.source[self.start + 1..self.cursor - 1].to_vec())
+                    .unwrap(),
+            ))
+        )
+    }
+
+    // 싱글 쿠테이션 마크도 받을 수 있게 하기
+    fn string2(&mut self) {
+        while self.peek() != '\'' && !self.is_end() {    // &는 안될까?
+            if self.peek() == '\n' {
+                self.line += 1
+            }
+            self.nexting();
+        }
+
+        if self.is_end() {
+            self.err = Some(Error {
+                what: "Unterminated string".to_string(),
+                line: self.line,
+                col: self.col,
+            })
+        }
+
+        assert_eq!(self.peek(), '\'');
+
+        self.nexting();
+
+        self.add_token_literal(
+            TokenType::String,
+            Some(Literal::Str(
+                String::from_utf8(self.source[self.start + 1..self.cursor - 1].to_vec())
+                    .unwrap(),
+            ))
+        )
+    }
+
+    fn identifier(&mut self) {
+        while Lexer::is_alphanumeric(self.peek()) {
+            self.nexting();
+        }
+
+        let literal_val =
+            String::from_utf8(self.source[self.start..self.cursor].to_vec()).unwrap();
+
+        let token_type = match self.keywords.get(&literal_val) {
+            Some(tokentype) => *tokentype,
+            None => TokenType::Identifier,
+        };
+
+        match token_type {
+            TokenType::Identifier => self.add_token_literal(
+                TokenType::Identifier,
+                Some(Literal::Identifier(literal_val)),
+            ),
+            _ => self.add_token(token_type),
+        }
+    }
+
+
+    fn number(&mut self) {
+        while Lexer::is_decimal_digit(self.peek()) {
+            self.nexting();
+        }
+
+        if self.peek() == '.' && Lexer::is_decimal_digit(self.peek_next()) {
+            self.nexting();
+        }
+
+        while Lexer::is_decimal_digit(self.peek()) {
+            self.nexting();
+        }
+
+        // 숫자값은 그대로 밸류 생성함
+        let val: f64 = String::from_utf8(self.source[self.start..self.cursor].to_vec())
+            .unwrap()
+            .parse()
+            .unwrap();
+
+        self.add_token_literal(TokenType::Number, Some(Literal::Number(val)))
     }
 
     fn add_token(&mut self, token_type: TokenType) {
@@ -221,15 +433,27 @@ impl Scanner {
         })
     }
 
+    fn matches(&mut self, c: char) -> bool {
+        if self.is_end() {
+            return true;
+        }
+
+        if char::from(self.source[self.cursor]) != c {
+            return false;
+        }
+
+        self.cursor += 1;
+        self.col += 1;
+        true
+    }
+
     // error or is_end 일 경우
     fn done(&self) -> bool {
-        self.err.is_some() || self.is_end()
+        self.err.is_some() || self.is_end()         // | 하나로는 안될까?
     }
 
     // 다 읽었을 때
     fn is_end(&self) -> bool {
         self.cursor >= self.source.len()
     }
-
-
 }
