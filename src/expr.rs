@@ -87,7 +87,7 @@ pub enum UnaryOpTy {
 
 #[derive(Debug, Copy, Clone)]
 pub struct UnaryOp {
-    pub tktype: UnaryOpTy,
+    pub toktype: UnaryOpTy,
     pub line: usize,
     pub col: i64,
 }
@@ -108,7 +108,7 @@ pub enum BinaryOpTy {
 
 #[derive(Debug, Copy, Clone)]
 pub struct BinaryOp {
-    pub tktype: BinaryOpTy,
+    pub toktype: BinaryOpTy,
     pub line: usize,
     pub col: i64,
 }

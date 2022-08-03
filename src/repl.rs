@@ -50,7 +50,7 @@ pub(crate) fn check_eval_tokens(
                                 expr::Expr::Binary(
                                     Box::new(var_expr.clone()),
                                     expr::BinaryOp {
-                                        tktype: expr::BinaryOpTy::NotEqual,
+                                        toktype: expr::BinaryOpTy::NotEqual,
                                         line: 0,
                                         col: 0,
                                     },
@@ -85,7 +85,7 @@ pub(crate) fn check_eval_tokens(
                 expected: lexer::TokenType::Semicolon,
                 found:
                 lexer::Token {
-                    tktype: lexer::TokenType::Eof,
+                    toktype: lexer::TokenType::Eof,
                     ..
                 },
                 ..
@@ -94,7 +94,7 @@ pub(crate) fn check_eval_tokens(
             let expected_eof = tokens.pop().unwrap();
 
             tokens.push(lexer::Token {
-                tktype: lexer::TokenType::Semicolon,
+                toktype: lexer::TokenType::Semicolon,
                 lexing: Vec::new(),
                 literal: None,
                 line: 0,
@@ -151,7 +151,7 @@ pub(crate) fn eval_tokens2(
                                 expr::Expr::Binary(
                                     Box::new(var_expr.clone()),
                                     expr::BinaryOp {
-                                        tktype: expr::BinaryOpTy::NotEqual,
+                                        toktype: expr::BinaryOpTy::NotEqual,
                                         line: 0,
                                         col: 0,
                                     },
@@ -186,7 +186,7 @@ pub(crate) fn eval_tokens2(
                 expected: lexer::TokenType::Semicolon,
                 found:
                 lexer::Token {
-                    tktype: lexer::TokenType::Eof,
+                    toktype: lexer::TokenType::Eof,
                     ..
                 },
                 ..
@@ -195,7 +195,7 @@ pub(crate) fn eval_tokens2(
             let expected_eof = tokens.pop().unwrap();
 
             tokens.push(lexer::Token {
-                tktype: lexer::TokenType::Semicolon,
+                toktype: lexer::TokenType::Semicolon,
                 lexing: Vec::new(),
                 literal: None,
                 line: 0,

@@ -38,9 +38,4 @@ impl LineReader {
             Err(_) => LineReadStatus::Done,
         }
     }
-
-    // pub fn readparsing(&mut self) -> String {
-    //     let res = &self.rl.readline(&self.prompt);
-    //     res.unwrap()
-    // }
 }

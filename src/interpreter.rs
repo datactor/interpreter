@@ -8,7 +8,6 @@ use crate::expr;
 
 use std::fmt;
 use std::fmt::Write;
-use std::ops::Deref;
 
 static INIT: &str = "init";
 
@@ -1113,7 +1112,7 @@ impl Interpreter {
         let lhs = self.interpret_expr(lhs_expr)?;
         let rhs = self.interpret_expr(rhs_expr)?;
 
-        match (&lhs, op.tktype, &rhs) {
+        match (&lhs, op.toktype, &rhs) {
             (Value::Number(n1), expr::BinaryOpTy::Less, Value::Number(n2)) => {
                 Ok(Value::Bool(n1 < n2))
             }
@@ -1161,7 +1160,7 @@ impl Interpreter {
             (_, expr::BinaryOpTy::NotEqual, _) => Ok(Value::Bool(!Interpreter::equals(&lhs, &rhs))),
             _ => Err(format!(
                 "invalid operands in binary operator {:?} of type {:?} and {:?} at line={},col={}",
-                op.tktype,
+                op.toktype,
                 type_of(&lhs),
                 type_of(&rhs),
                 op.line,
@@ -1183,40 +1182,40 @@ impl Interpreter {
     fn interpret_unary(&mut self, op: expr::UnaryOp, expr: &expr::Expr) -> Result<Value, String> {
         let val = self.interpret_expr(expr)?;
 
-        match (op.tktype, &val) {
+        match (op.toktype, &val) {
             (expr::UnaryOpTy::Minus, Value::Number(n)) => Ok(Value::Number(-n)),
             (expr::UnaryOpTy::Bang, _) => Ok(Value::Bool(!Interpreter::is_truthy(&val))),
             (_, Value::String(_)) => Err(format!(
                 "invalid application of unary op {:?} to object of type String at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::NativeFunction(_)) => Err(format!(
                 "invalid application of unary op {:?} to object of type NativeFunction at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::LoxFunction(_, _, _)) => Err(format!(
                 "invalid application of unary op {:?} to object of type LoxFunction at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::LoxClass(_, _)) => Err(format!(
                 "invalid application of unary op {:?} to object of type LoxClass at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::LoxInstance(class_name, _)) => Err(format!(
                 "invalid application of unary op {:?} to object of type {:?} at line={},col={}",
-                class_name.name, op.tktype, op.line, op.col
+                class_name.name, op.toktype, op.line, op.col
             )),
             (expr::UnaryOpTy::Minus, Value::Bool(_)) => Err(format!(
                 "invalid application of unary op {:?} to object of type Bool at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::Nil) => Err(format!(
                 "invalid application of unary op {:?} to nil at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
             (_, Value::List(_)) => Err(format!(
                 "invalid application of unary op {:?} to list at line={},col={}",
-                op.tktype, op.line, op.col
+                op.toktype, op.line, op.col
             )),
         }
     }

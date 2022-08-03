@@ -59,7 +59,7 @@ impl fmt::Debug for Error {
             Error::UnexpectedToken(tok) => write!(
                 f,
                 "Unexpected token {:?} at line={},col={}",
-                tok.tktype, tok.line, tok.col
+                tok.toktype, tok.line, tok.col
             ),
             Error::TokenMismatch {
                 maybe_on_err_string,
@@ -69,7 +69,7 @@ impl fmt::Debug for Error {
                 write!(
                     f,
                     "Expected token {:?} but found {:?} at line={},col={}",
-                    expected, found.tktype, found.line, found.col
+                    expected, found.toktype, found.line, found.col
                 )?;
                 if let Some(on_err_string) = maybe_on_err_string {
                     write!(f, ": {}", on_err_string)?;
@@ -152,10 +152,10 @@ pub fn parse(
                 Ok(stmts_or_err)
             }
         }
-        Err(err) => Err(err),       // 에러일때 = 읽고 declaration 추가
-    }                                     // log에서 뽑아서 읽기? or 과정에서 토큰하나씩 저장하기?
-}                                         // Runtime error: attempting to assign to undeclared variable at line=1,col=0
-                                          // 일때 stmt 한번 더 순환
+        Err(err) => Err(err),
+    }
+}
+
 
 
 pub fn parse_varerr(
@@ -211,9 +211,9 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Result<expr::Stmt, Error> {
-        if self.matches(lexer::TokenType::Var) {          // 변수 선언 방식 고치기
-            return self.var_decl();
-        }
+        // if self.matches(lexer::TokenType::Var) {              // 변수 선언 방식 고치기
+        //     return self.var_decl();
+        // }
 
         if self.matches(lexer::TokenType::Def) {
             return Ok(expr::Stmt::FunDecl(self.fun_decl(FunctionKind::Function)?));
@@ -864,7 +864,7 @@ impl Parser {
         }
 
         Err(Error::ExpectedExpression {
-            token_type: self.peek().tktype,
+            token_type: self.peek().toktype,
             line: self.peek().line,
             col: self.peek().col,
         })
@@ -886,19 +886,19 @@ impl Parser {
     }
 
     fn op_token_to_unary_op(tok: &lexer::Token) -> Result<expr::UnaryOp, Error> {
-        match tok.tktype {
+        match tok.toktype {
             lexer::TokenType::Minus => Ok(expr::UnaryOp {
-                tktype: expr::UnaryOpTy::Minus,
+                toktype: expr::UnaryOpTy::Minus,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Bang => Ok(expr::UnaryOp {
-                tktype: expr::UnaryOpTy::Bang,
+                toktype: expr::UnaryOpTy::Bang,
                 line: tok.line,
                 col: tok.col,
             }),
             _ => Err(Error::InvalidTokenInUnaryOp {
-                token_type: tok.tktype,
+                token_type: tok.toktype,
                 line: tok.line,
                 col: tok.col,
             }),
@@ -929,59 +929,59 @@ impl Parser {
     }
 
     fn op_token_to_binop(tok: &lexer::Token) -> Result<expr::BinaryOp, Error> {
-        match tok.tktype {
+        match tok.toktype {
             lexer::TokenType::EqualEqual => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::EqualEqual,
+                toktype: expr::BinaryOpTy::EqualEqual,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::BangEqual => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::NotEqual,
+                toktype: expr::BinaryOpTy::NotEqual,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Less => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Less,
+                toktype: expr::BinaryOpTy::Less,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::LessEqual => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::LessEqual,
+                toktype: expr::BinaryOpTy::LessEqual,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Greater => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Greater,
+                toktype: expr::BinaryOpTy::Greater,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::GreaterEqual => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::GreaterEqual,
+                toktype: expr::BinaryOpTy::GreaterEqual,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Plus => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Plus,
+                toktype: expr::BinaryOpTy::Plus,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Minus => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Minus,
+                toktype: expr::BinaryOpTy::Minus,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Star => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Star,
+                toktype: expr::BinaryOpTy::Star,
                 line: tok.line,
                 col: tok.col,
             }),
             lexer::TokenType::Slash => Ok(expr::BinaryOp {
-                tktype: expr::BinaryOpTy::Slash,
+                toktype: expr::BinaryOpTy::Slash,
                 line: tok.line,
                 col: tok.col,
             }),
             _ => Err(Error::InvalidTokenInBinaryOp {
-                token_type: tok.tktype,
+                token_type: tok.toktype,
                 line: tok.line,
                 col: tok.col,
             }),
@@ -1010,7 +1010,7 @@ impl Parser {
             return false;
         }
 
-        self.peek().tktype == tktype
+        self.peek().toktype == tktype
     }
 
     fn nexting(&mut self) -> &lexer::Token {
@@ -1022,11 +1022,11 @@ impl Parser {
     }
 
     fn is_end(&self) -> bool {
-        self.peek().tktype == lexer::TokenType::Eof
+        self.peek().toktype == lexer::TokenType::Eof
     }
 
     fn is_equal(&self) -> bool {                                // is_equal 함수 추가
-        self.peek().tktype == lexer::TokenType::Equal
+        self.peek().toktype == lexer::TokenType::Equal
     }
 
     fn peek(&self) -> &lexer::Token {

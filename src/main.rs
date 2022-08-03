@@ -1,5 +1,3 @@
-extern crate core;
-
 mod lexer;
 mod interpreter;
 mod expr;
@@ -8,10 +6,6 @@ mod extensions;
 mod line_reader;
 mod input;
 mod repl;
-
-use std::sync::atomic::Ordering;
-
-use std::fs;
 
 /// interpreter, python list 구현해보기
 /// 루프 문에 input실행하고 parsing, mut state 전달
@@ -62,20 +56,18 @@ use std::fs;
 /// 4. Interpreter가 연산해서 출력함.
 ///
 ///
-/// 구동할 수 있는 최소 모듈 카피 리팩터,
-/// 1. single quotation marks 커버드 밸류 역시 스트링으로 받을 수 있도록 함 완
-/// 2. 파이썬과 같이 선언문 없이 선언할 수 있는 기능 구현 완
-/// 3. 리스트 표현방법 변경할 것
+/// 구동할 수 있는 최소 모듈 카피 리팩터
+/// 1. single quotation marks 커버드 밸류 역시 스트링으로 받을 수 있게함
+/// 2. 파이썬과 같이 선언문 없이 선언할 수 있는 기능 구현(이후에 파싱 시퀀스 바꾸기)
+/// 3. 리스트 append 방식 파이썬처럼 구현
 
-use std::io::stdin;
 use crate::expr::Stmt;
 
 fn main() {
     let extensions = extensions::Extensions {
-        lists: false,
-        lambdas: false,
+        lists: true,
+        lambdas: true,
     };
-    // repl::run(extensions);
     let mut interpreter = repl::mk_interpreter();
     let mut line_reader = line_reader::LineReader::new(".repl-history.txt", ">>> ");
     println!(
@@ -89,13 +81,13 @@ fn main() {
         match readline {
             line_reader::LineReadStatus::Line(line) => match lexer::check_tokens(line.clone()) {
                 Ok(tokens) => {
-                    let mut a = repl::check_eval_tokens(&mut interpreter, tokens.clone(),
+                    let mut need_empty_decl = repl::check_eval_tokens(&mut interpreter, tokens.clone(),
                                                     0, extensions, &line);
-                    if a == true {
-                        repl::eval_tokens2(&mut interpreter, tokens.clone(),0, extensions, &line)
+                    if need_empty_decl == true {
+                        repl::eval_tokens2(&mut interpreter, tokens,0, extensions, &line)
                     }
                 },
-                Err(err) => {}
+                Err(err) => println!("Tokernizer Failure")
             },
             line_reader::LineReadStatus::Done => break,
         }

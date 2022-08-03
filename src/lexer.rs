@@ -21,7 +21,7 @@ pub enum TokenType {
     Percent,        // % 추가
 
     // One or two char tokens
-    Equal,          // = (+declaration)
+    Equal,
     Bang,
     BangEqual,
     EqualEqual,
@@ -70,15 +70,14 @@ pub enum Literal {
 
 #[derive(Clone)]
 pub struct Token {
-    pub tktype: TokenType,
-    pub lexing: Vec<u8>,            // clone해서 사용
+    pub toktype: TokenType,
+    pub lexing: Vec<u8>,            // clone해서 사용(1바이트)
     pub literal: Option<Literal>,   // 식별자, 문자, 숫자 중 하나
     pub line: usize,                // 라인은 1부터
     pub col: i64,                   // 칼럼은 -1부터
 }
 
 // pub trait Debug {
-//     #[stable(feature = "rust1", since = "1.0.0")]
 //     fn fmt(&self, f: &mut Formatter<'_>) -> Result;
 // }
 impl fmt::Debug for Token {
@@ -86,7 +85,7 @@ impl fmt::Debug for Token {
         write!(
             form,
             "Token {{ tktype: {:?}, lexing: \"{}\", literal: {:?}, line: {:?}, col: {:?}}}",
-            self.tktype,
+            self.toktype,
             String::from_utf8(self.lexing.clone()).unwrap(),
             self.literal,
             self.line,
@@ -107,7 +106,7 @@ pub fn check_tokens(input: String) -> Result<Vec<Token>, Error> {
 }
 
 #[derive(Debug)]
-pub struct Error {      // Error type 정의
+pub struct Error {      // Error type 정의해서 lexer struct의 필드 원소 타입으로 넣음
     pub what: String,
     pub line: usize,
     pub col: i64,
@@ -115,7 +114,7 @@ pub struct Error {      // Error type 정의
 
 pub struct Lexer {
     source: Vec<u8>,    // u8로 받는 이유
-    tokens: Vec<Token>,
+    tokens: Vec<Token>, // Vec<Token>
     err: Option<Error>,
     start: usize,
     cursor: usize,
@@ -144,7 +143,7 @@ impl Default for Lexer {
                 ("false", TokenType::False),
                 ("in", TokenType::In),
                 ("for", TokenType::For),
-                ("def", TokenType::Def),        // def로 변경
+                ("def", TokenType::Def),
                 ("if", TokenType::If),
                 ("elif", TokenType::Elif),
                 ("else", TokenType::Else),
@@ -158,11 +157,10 @@ impl Default for Lexer {
                 ("this", TokenType::This),
                 ("nil", TokenType::Nil),
                 ("var", TokenType::Var),
-            ].into_iter()   // vec구조 원소별로 iterator type으로 넘기기
-                .map(|(key, val)| (String::from(key), val))// to String
+            ]
+                .into_iter()
+                .map(|(key, val)| (String::from(key), val))
                 .collect(),
-            // | | 클로저 -> 환경을 캡처 할 수 있는 익명 함수. 나중에 실행하기 위해 저장 -> 개념 파악하기
-            // collect() chars 같은 컬렉션에서도 빌드 해 iter 할 수 있음.
         }
     }
 }
@@ -179,7 +177,7 @@ impl Lexer {
         match self.err {
             Some(_) => {}
             None => self.tokens.push(Token {
-                tktype: TokenType::Eof,
+                toktype: TokenType::Eof,
                 lexing: Vec::new(),
                 literal: None,
                 line: self.line,
@@ -222,7 +220,6 @@ impl Lexer {
             '-' => self.add_token(TokenType::Minus),
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
-            // '*' => self.add_token(TokenType::Star),
             '!' => {
                 let matches_eq = self.matches('=');
                 self.add_token(if matches_eq {
@@ -296,12 +293,12 @@ impl Lexer {
     }
 
     fn is_alphanumeric(c: char) -> bool {
-        Lexer::is_alpha(c) || Lexer::is_decimal_digit(c)       // | 하나로는 안될까?
+        Lexer::is_alpha(c) || Lexer::is_decimal_digit(c)
     }
 
     fn peek(&self) -> char {
         if self.is_end() {
-            '\0'                                                    // \0 is null
+            '\0'
         } else {
             char::from(self.source[self.cursor])
         }
@@ -316,7 +313,7 @@ impl Lexer {
     }
 
     fn string(&mut self) {
-        while self.peek() != '"' && !self.is_end() {    // &는 안될까?
+        while self.peek() != '"' && !self.is_end() {
             if self.peek() == '\n' {
                 self.line += 1
             }
@@ -346,7 +343,7 @@ impl Lexer {
 
     // 싱글 쿠테이션 마크도 받을 수 있게 하기
     fn string2(&mut self) {
-        while self.peek() != '\'' && !self.is_end() {    // &는 안될까?
+        while self.peek() != '\'' && !self.is_end() {
             if self.peek() == '\n' {
                 self.line += 1
             }
@@ -425,9 +422,9 @@ impl Lexer {
 
     fn add_token_literal(&mut self, token_type: TokenType, literal: Option<Literal>) {
         self.tokens.push(Token {
-            tktype: token_type,
+            toktype: token_type,
             lexing: self.source[self.start..self.cursor].to_vec(),
-            literal,            // 인자와 필드네임이 같으면 생략 가능!!!
+            literal,
             line: self.line,
             col: self.col,
         })
@@ -447,12 +444,10 @@ impl Lexer {
         true
     }
 
-    // error or is_end 일 경우
     fn done(&self) -> bool {
-        self.err.is_some() || self.is_end()         // | 하나로는 안될까?
+        self.err.is_some() || self.is_end()
     }
 
-    // 다 읽었을 때
     fn is_end(&self) -> bool {
         self.cursor >= self.source.len()
     }
