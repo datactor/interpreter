@@ -39,10 +39,11 @@ pub(crate) fn check_eval_tokens(
                     expr::Stmt::Expr(expr) => {
                         let var_sym = expr::Symbol {
                             // hack!!! we should find a fresh varname from somewhere
-                            name: format!("isurehopethisisntusedelsewhere{}", idx),
+                            name: format!("freshnewvarname{}", idx),
                             line: 0,
                             col: 0,
                         };
+                        // println!("name:{}\nline:{}\ncol:{} ", &var_sym.name, &var_sym.line, &var_sym.col);
                         let var_expr = expr::Expr::Variable(var_sym.clone());
                         expr::Stmt::Block(vec![
                             expr::Stmt::VarDecl(var_sym, Some(expr.clone())),

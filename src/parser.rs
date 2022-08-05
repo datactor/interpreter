@@ -194,7 +194,6 @@ impl Parser {
     }
 
 
-
     pub fn parse_varerr(&mut self) -> Result<Vec<expr::Stmt>, Error> {
         let mut statements = Vec::new();
         statements.push(self.declvar()?);
@@ -211,9 +210,9 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Result<expr::Stmt, Error> {
-        // if self.matches(lexer::TokenType::Var) {              // 변수 선언 방식 고치기
-        //     return self.var_decl();
-        // }
+        if self.matches(lexer::TokenType::Var) {              // 변수 선언 방식 고치기
+            return self.var_decl();
+        }
 
         if self.matches(lexer::TokenType::Def) {
             return Ok(expr::Stmt::FunDecl(self.fun_decl(FunctionKind::Function)?));
@@ -684,22 +683,30 @@ impl Parser {
         loop {
             if self.matches(lexer::TokenType::LeftParen) {
                 expr = self.finish_call(expr)?;
-            } else if self.matches(lexer::TokenType::Dot) {
-                let name_tok = self
-                    .consume(
-                        lexer::TokenType::Identifier,
-                        "Expected property name after '.'.",
-                    )?
-                    .clone();
-                expr = expr::Expr::Get(
-                    Box::new(expr),
-                    expr::Symbol {
-                        name: String::from_utf8(name_tok.lexing).unwrap(),
-                        line: name_tok.line,
-                        col: name_tok.col,
-                    },
-                );
-            } else if self.extensions.lists && self.matches(lexer::TokenType::LeftBracket) {
+            }
+
+
+
+            // else if self.matches(lexer::TokenType::Dot) {
+            //     let name_tok = self
+            //         .consume(
+            //             lexer::TokenType::Identifier,
+            //             "Expected property name after '.'.",
+            //         )?
+            //         .clone();
+            //     expr = expr::Expr::Get(
+            //         Box::new(expr),
+            //         expr::Symbol {
+            //             name: String::from_utf8(name_tok.lexing).unwrap(),
+            //             line: name_tok.line,
+            //             col: name_tok.col,
+            //         },
+            //     );
+            // }
+
+
+
+            else if self.extensions.lists && self.matches(lexer::TokenType::LeftBracket) {
                 let slice_expr = self.expression()?;
                 let token = self.consume(
                     lexer::TokenType::RightBracket,
@@ -713,9 +720,68 @@ impl Parser {
                         col: token.col,
                     },
                 };
+                // } else {
+                //     break;
+                // }
+
+////////////////////////////////////
+
+
+
+            // dot append test
+            } else if self.extensions.lists && self.matches(lexer::TokenType::Dot) {
+                println!("hhhh");
+                if self.matches(lexer::TokenType::Append) {
+                    if self.matches(lexer::TokenType::LeftParen) {
+                        // let mut list_elements: Vec<expr> = Vec::new();
+                        let slice_expr = self.expression()?;
+                        let token = self.consume(
+                            lexer::TokenType::RightParen,
+                            "Expected ] after subscript",
+                        )?;
+                        expr = expr::Expr::Subscript {
+                            value: Box::new(expr),
+                            slice: Box::new(slice_expr),
+                            source_location: expr::SourceLocation {
+                                line: token.line,
+                                col: token.col,
+                            },
+                        };
+                    }
+                }
+
+
+
+
+
+                println!("hi");
+                // let mut list_elements = Vec::new();
+                // println!("dot");
+                //
+                // if self.check(lexer::TokenType::Append) {
+                //     if self.check(lexer::TokenType::LeftParen) {
+                //         if !self.check(lexer::TokenType::RightParen) {
+                //             loop {
+                //                 list_elements.push(self.expression()?);
+                //             }
+                //         }
+                //     }
+                // }
             } else {
                 break;
             }
+
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////
         }
         Ok(expr)
     }
@@ -989,28 +1055,28 @@ impl Parser {
     }
 
     fn match_one_of(&mut self, types: Vec<lexer::TokenType>) -> bool {
-        for tktype in types.iter() {
-            if self.matches(*tktype) {
+        for toktype in types.iter() {
+            if self.matches(*toktype) {
                 return true;
             }
         }
         false
     }
 
-    fn matches(&mut self, tktype: lexer::TokenType) -> bool {
-        if self.check(tktype) {
+    fn matches(&mut self, toktype: lexer::TokenType) -> bool {
+        if self.check(toktype) {
             self.nexting();
             return true;
         }
         false
     }
 
-    fn check(&self, tktype: lexer::TokenType) -> bool {
+    fn check(&self, toktype: lexer::TokenType) -> bool {
         if self.is_end() {
             return false;
         }
 
-        self.peek().toktype == tktype
+        self.peek().toktype == toktype
     }
 
     fn nexting(&mut self) -> &lexer::Token {

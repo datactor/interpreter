@@ -57,6 +57,7 @@ pub enum TokenType {
     Super,
     This,
     Var,
+    Append,
 
     Eof,
 }
@@ -157,6 +158,7 @@ impl Default for Lexer {
                 ("this", TokenType::This),
                 ("nil", TokenType::Nil),
                 ("var", TokenType::Var),
+                ("append", TokenType::Append),
             ]
                 .into_iter()
                 .map(|(key, val)| (String::from(key), val))

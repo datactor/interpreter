@@ -121,3 +121,17 @@ pub enum Literal {
     False,
     Nil,
 }
+
+
+pub trait List {
+    fn append(&self) {}
+    fn extend(&self) {}
+    fn insert(&self) {}
+    fn remove(&self) {}
+    fn pop(&self) {}
+    fn clear(&self) {}
+    fn index(&self) {}
+    fn count(&self) {}
+    fn reverse(&self) {}
+    fn copy(&self) {}
+}
