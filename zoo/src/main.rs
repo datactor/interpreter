@@ -11,6 +11,8 @@
 /// 출력 => "Elephant1 and Elephant2 fight."
 use std::collections::VecDeque;
 use std::boxed::Box;
+use std::io::stdin;
+use std::io::Write;
 
 
 // 다양한 타입(struct)을 벡터에 넣기
@@ -36,6 +38,7 @@ impl Cage {
                          self.lane[len - 1].animal_name())
             }
         }
+        println!("{}", len);
     }
 
     fn pop(&mut self) {
@@ -62,6 +65,17 @@ impl Animal for Elephant {
     }
 }
 
+impl Elephant {
+    fn new() -> Self {
+        Elephant {name: String::new(), types: String::new()}
+    }
+
+    fn id(&mut self, name: String, types: String) {
+        self.name = name;
+        self.types = types;
+    }
+}
+
 struct Lion {
     name: String,
     types: String,
@@ -73,6 +87,17 @@ impl Animal for Lion {
     }
     fn animal_type(&self) -> String {
         format!("{}", self.types)
+    }
+}
+
+impl Lion {
+    fn new() -> Self {
+        Lion {name: String::new(), types: String::new()}
+    }
+
+    fn id(&mut self, name: String, types: String) {
+        self.name = name;
+        self.types = types;
     }
 }
 
@@ -90,20 +115,77 @@ impl Animal for Hippo {
     }
 }
 
+impl Hippo {
+    fn new() -> Self {
+        Hippo {name: String::new(), types: String::new()}
+    }
+
+    fn id(&mut self, name: String, types: String) {
+        self.name = name;
+        self.types = types;
+    }
+}
+
 
 fn main() {
     let mut cage = Cage::new();
 
-    let l1 = Lion { name: "Lion1".to_string(), types: "Lion".to_string()};
-    let l2 = Lion { name: "Lion2".to_string(), types: "Lion".to_string()};
-    let h1 = Hippo { name: "Hippo1".to_string(), types: "Hippo".to_string()};
-    let h2 = Hippo { name: "Hippo2".to_string(), types: "Hippo".to_string()};
-    let e1 = Elephant { name: "Elephant1".to_string(), types: "Elephant".to_string()};
-    let e2 = Elephant { name: "Elephant2".to_string(), types: "Elephant".to_string()};
+    // let l1 = Lion { name: "Lion1".to_string(), types: "Lion".to_string()};
+    // let l2 = Lion { name: "Lion2".to_string(), types: "Lion".to_string()};
+    // let h1 = Hippo { name: "Hippo1".to_string(), types: "Hippo".to_string()};
+    // let h2 = Hippo { name: "Hippo2".to_string(), types: "Hippo".to_string()};
+    // let e1 = Elephant { name: "Elephant1".to_string(), types: "Elephant".to_string()};
+    // let e2 = Elephant { name: "Elephant2".to_string(), types: "Elephant".to_string()};
 
-    cage.push(Box::new(l1));
-    cage.push(Box::new(h2));
-    cage.push(Box::new(l2));
-    cage.push(Box::new(e1));
-    cage.push(Box::new(e2));
+    let mut l1 = Lion::new();
+    let mut l2 = Lion::new();
+    let mut h1 = Hippo::new();
+    let mut h2 = Hippo::new();
+    let mut e1 = Elephant::new();
+    let mut e2 = Elephant::new();
+
+    // cage.push(Box::new(a));
+    // cage.push(Box::new(d));
+    // cage.push(Box::new(h2));
+    // cage.push(Box::new(l2));
+    // cage.push(Box::new(e1));
+    // cage.push(Box::new(e2));
+
+    loop {
+        let mut buffer = String::new();
+        stdin().read_line(&mut buffer).expect("input error");
+        match buffer.as_str() {
+            "1" => {
+                let mut l1 = Lion::new();
+                l1.id("Lion1".to_string(), "Lion".to_string());
+                cage.push(Box::new(l1));
+            },
+            "2" => {
+                let mut l2 = Lion::new();
+                l2.id("Lion2".to_string(), "Lion".to_string());
+                cage.push(Box::new(l2));
+            },
+            "3" => {
+                let mut h1 = Hippo::new();
+                h1.id("Hippo1".to_string(), "Hippo".to_string());
+                cage.push(Box::new(h1));
+            },
+            "4" => {
+                let mut h2 = Hippo::new();
+                h2.id("Hippo2".to_string(), "Hippo".to_string());
+                cage.push(Box::new(h2));
+            },
+            "5" => {
+                let mut e1 = Elephant::new();
+                e1.id("Elephant1".to_string(), "Elephant".to_string());
+                cage.push(Box::new(e1));
+            },
+            "6" => {
+                let mut e2 = Elephant::new();
+                e2.id("Elephant2".to_string(), "Elephant".to_string());
+                cage.push(Box::new(e2))
+            },
+            _ => {},
+        }
+    }
 }

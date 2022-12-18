@@ -184,7 +184,7 @@ pub fn parse_varerr(
 
 
 impl Parser {
-    pub fn parse(&mut self) -> Result<Vec<expr::Stmt>, Error> {
+    pub fn parse(&mut self) -> Result<Vec<expr::Stmt>, Error> { // 선언있는지 확인 후 스테이트먼트로 넘김
         let mut statements = Vec::new();
         while !self.is_end() {
             let stmt = self.declaration()?;

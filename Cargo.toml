@@ -9,3 +9,8 @@ edition = "2021"
 members = [
     "zoo",
 ]
+
+[dependencies]
+ctrlc = "3.2.2"
+colored = "2"
+rustyline = "9.1.2"

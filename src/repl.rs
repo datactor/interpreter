@@ -1,4 +1,4 @@
-use crate::{expr, Stmt};
+use crate::expr;
 use crate::extensions;
 use crate::input;
 use crate::line_reader;
